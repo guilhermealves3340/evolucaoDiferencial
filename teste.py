@@ -58,7 +58,7 @@ while k < GeracaoMax:
     for i in range(d):
         # u : TRIAL
         random = np.random.uniform(0,1)
-        if np.random.uniform(0,1) <= CR:
+        if random <= CR:
             u[i] = v[i]
         else:
             u[i] = x[i]
@@ -68,14 +68,5 @@ while k < GeracaoMax:
             u[s] = x[s]
 
     
-    aux = []
-    for i in range(N):
-        if fit(u) > fit(G[k][i]):
-            aux.append(u)
-        else:
-            aux.append(G[k][i])
-
-    G.append(aux)
-    k += 1
-
-    print(k-1)
+    print(u)
+    break
