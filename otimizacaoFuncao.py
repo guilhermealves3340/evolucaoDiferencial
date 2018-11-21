@@ -1,81 +1,89 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
-import csv
-from datetime import datetime
 import matplotlib.pyplot as plt
 
 
-# Parametros
-N = 100             # Numero de individuos de uma população
-CR = 0.9             # Taxa de crossover
-F = 0.5              # Constante de multação
-GeracaoMax = 5
-k = 0
+N = 100
+d = 2
+F = 0.5
+CR = 0.9
+GeracaoMax = 500
+G = []
+Melhor = []
 
-d = 2                # Tamanho de cada individuo
-
-# Função Rastrigin
 def fit(x):
     ac = 0
-    for i in range(d):
-        ac = ac + x[i]**2 - np.cos(2*x[i]*np.pi)
-    return 10 + ac
+    for i in x:
+        ac = ac + i**2 - 10*np.cos(2*i*np.pi)
+    return ac + 10 * d
 
-# Primeira população
-x = np.zeros((N,d), dtype=np.float64)
+x = np.zeros((N,d),dtype=np.float64)
 for i in range(N):
     for j in range(d):
         x[i][j] = np.random.uniform(-5.12,5.12)
 
-# Gerações
-G = []
 G.append(x)
-    
-v = []
-u = []
-for i in range(d):
-    v.append(0)
-    u.append(0)
 
+k = 0
 while k < GeracaoMax:
-    
-    # Sorteio de 3 elementos da GERAÇÃO
-    r = []
-    for i in range(3):
-        r.append(np.random.random_integers(0,N-1))
 
-    for i in range(3):
-        r[i] = G[k][r[i]]
+    # Sorteio
+    r1 = x[np.random.random_integers(0,N-1)]
+    r2 = x[np.random.random_integers(0,N-1)]
+    r3 = x[np.random.random_integers(0,N-1)]
 
-
-    # Multação
+    # Mutação
+    v = np.zeros(d,dtype=np.float64)
     for i in range(d):
-        v[i] = r[0][i] + F * (r[1][i] - r[2][i])
-    
+        v[i] = r1[i] + F * (r2[i] - r3[i])
+
     # Crossover
-    count = 0
-    for i in range(d):
-        # u : TRIAL
-        random = np.random.uniform(0,1)
-        if np.random.uniform(0,1) <= CR:
-            u[i] = v[i]
-        else:
-            u[i] = x[i]
-            count += 1
-        if count == 0:
+    u = np.zeros((N,d),dtype=np.float64)
+    for i in range(N):
+        c = 0
+        for j in range(d):
+            random = np.random.uniform(0,1)
+            if random <= CR:
+                u[i][j] = v[j]
+            else:
+                u[i][j] = x[i][j]
+                c += 0
+        if c == 0:
             s = np.random.random_integers(0,d-1)
-            u[s] = x[s]
+            u[i][s] = x[i][s]
+
+    # Criando uma nova geração
+    sel = []
+    for i in range(N):
+        if fit(u[i]) < fit(x[i]):
+            sel.append(u[i])
+        else:
+            sel.append(x[i])
+        
+    k += 1
+    x = sel
+
+    G.append(sel)
+
+menor = x[0]
+for i in x:
+    if fit(i) <= fit(menor):
+        menor = i
+
+grafico = [[],[]]
+g = 0
+for i in range(GeracaoMax+1):
+    menor = G[i][0]
+    for j in G[g]:
+        if fit(j) <= fit(menor):
+            menor = j
+    grafico[1].append(fit(j))
+    grafico[0].append(g)
+    g += 1
+
+plt.plot(grafico[0],grafico[1],'go')
+plt.axis([0,GeracaoMax+1,min(grafico[1]), max(grafico[1])])
+plt.show()
+
+print('MELHOR INDIVÍDUO: {}'.format(menor))
 
     
-    aux = []
-    for i in range(N):
-        if fit(u) > fit(G[k][i]):
-            aux.append(u)
-        else:
-            aux.append(G[k][i])
-
-    G.append(aux)
-    k += 1
-
-    print(k-1)
